@@ -1,0 +1,32 @@
+version: "3.1"
+networks:
+  auth-service-network:
+services:
+  auth-service:
+    build: .
+    ports:
+      - "3456:3456"
+    environment:
+      PORT: 3456
+      DATABASE_URI: "postgres://postgres:password@database-auth-service:5432/postgres"
+      JWT_SECRET: "some-secret-for-jwt"
+    depends_on:
+      - postgres
+    networks:
+      - auth-service-network
+    command:
+      ["./wait_for_it.sh", "database-auth-service:5432", "--", "node", "index.js"]
+
+  postgres:
+    image: postgres
+    container_name: database-auth-service
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - /var/lib/postgresql
+    ports:
+      - 5432:5432
+    networks:
+      - auth-service-network
